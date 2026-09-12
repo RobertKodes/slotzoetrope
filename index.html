@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#140e09" />
+    <title>Slotzoetrope — a parlor drum for the Solana slot clock</title>
+    <meta
+      name="description"
+      content="Live Solana mainnet as a Victorian zoetrope. The drum ticks with the slot clock; paper figures are recent transactions."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div class="parlor" id="parlor">
+      <header class="label-plate">
+        <p class="cabinet-no">Cabinet 7 · Kinetic curiosities</p>
+        <h1>Slotzoetrope</h1>
+        <p class="lede">A parlor drum for the Solana slot clock. Look through the slits — not a ledger.</p>
+      </header>
+
+      <main class="stage">
+        <aside class="lamp" id="lamp" aria-hidden="true">
+          <div class="chimney"><div class="flame"></div></div>
+          <div class="lamp-stem"></div>
+          <div class="lamp-base"></div>
+          <p class="lamp-caption" id="lamp-caption">lamp mild</p>
+        </aside>
+
+        <div class="apparatus">
+          <div class="cabinet">
+            <div class="hood">
+              <button
+                type="button"
+                class="shutter-lever"
+                id="shutter"
+                aria-pressed="false"
+                aria-controls="peephole"
+              >
+                shutter
+              </button>
+              <div class="peephole" id="peephole" role="img" aria-label="View through a drum slit">
+                <div class="peek" id="peek"></div>
+              </div>
+            </div>
+
+            <div class="drum-stage">
+              <canvas id="drum" class="drum-canvas" width="640" height="460" role="img" aria-label="Zoetrope drum ticking with the Solana slot clock"></canvas>
+            </div>
+
+            <div class="plinth">
+              <span class="slot-stamp" id="slot-stamp">slot —</span>
+              <span class="gem" id="gem" title="wire"></span>
+            </div>
+          </div>
+
+          <button type="button" class="crank" id="crank" aria-pressed="false" aria-label="Hold the crank to freeze the strip">
+            <span class="crank-ring"></span>
+            <span class="crank-arm">
+              <span class="crank-knob">hold</span>
+            </span>
+            <span class="crank-note">hold to freeze</span>
+          </button>
+        </div>
+      </main>
+
+      <p class="caption" id="caption">The wire is quiet. Waiting on a first strip…</p>
+      <p class="footnote">
+        Costumes, if you linger: walnut ink is System, brass is Token, lampglow is Jup/DEX-ish, vermilion is NFT-ish.
+      </p>
+
+      <section class="strip-wrap" id="strip-wrap" hidden>
+        <p class="strip-label" id="strip-label">Held strip</p>
+        <div class="strip" id="strip"></div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
