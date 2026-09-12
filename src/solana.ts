@@ -21,8 +21,8 @@ export type Sample = {
 };
 
 const ENDPOINTS = [
-  "https://api.mainnet-beta.solana.com",
   "https://solana-rpc.publicnode.com",
+  "https://api.mainnet-beta.solana.com",
 ];
 
 const PROGRAMS: { id: string; family: Family }[] = [

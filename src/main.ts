@@ -1,9 +1,14 @@
+import "@fontsource/fraunces/700.css";
+import "@fontsource/eb-garamond/500.css";
+import "@fontsource/eb-garamond/500-italic.css";
+import "@fontsource/special-elite/400.css";
 import "./styles.css";
+import { drawDrum } from "./drum";
 import { BAY_COUNT, pullSample, type Figure, type Sample } from "./solana";
 import { familyWord, figureMarkup } from "./figures";
 
 const parlor = document.querySelector("#parlor")!;
-const drum = document.querySelector<HTMLElement>("#drum")!;
+const canvas = document.querySelector<HTMLCanvasElement>("#drum")!;
 const peek = document.querySelector("#peek")!;
 const peephole = document.querySelector("#peephole")!;
 const caption = document.querySelector("#caption")!;
@@ -24,7 +29,8 @@ let sample: Sample | null = null;
 let displaySlot = 0;
 let crankHeld = false;
 let shutterClosed = false;
-let crankAngle = 18;
+let crankAngle = 22;
+let lastSkip = 1;
 
 function frozen(): boolean {
   return crankHeld || shutterClosed;
@@ -78,33 +84,14 @@ function paintFigure(el: Element, fig: Figure | undefined): void {
   el.innerHTML = figureMarkup(fig.family, fig.pose, fig.failed, fig.callsign);
 }
 
-function ensureBays(): HTMLElement[] {
-  const existing = [...drum.querySelectorAll<HTMLElement>(".bay")];
-  if (existing.length === BAY_COUNT) return existing;
-
-  for (let i = 0; i < BAY_COUNT; i++) {
-    const bay = document.createElement("div");
-    bay.className = "bay";
-    bay.style.setProperty("--i", String(i));
-    bay.innerHTML = `
-      <div class="wall"><i class="slit"></i></div>
-      <article class="paper"></article>
-    `;
-    drum.append(bay);
-  }
-  return [...drum.querySelectorAll<HTMLElement>(".bay")];
-}
-
-function paintDrum(next: Sample): void {
-  const bays = ensureBays();
-  bays.forEach((bay, i) => {
-    const fig = next.figures[i];
-    const wall = bay.querySelector(".wall")!;
-    const paper = bay.querySelector(".paper")!;
-    wall.classList.toggle("jammed", Boolean(fig?.failed));
-    paper.classList.toggle("torn", Boolean(fig?.failed));
-    paper.setAttribute("data-family", fig?.family ?? "unknown");
-    paintFigure(paper, fig);
+function paintCanvas(next: Sample, slot: number, skip: number): void {
+  const angle = reduced ? 14 : bayIndex(slot) * 30;
+  drawDrum(canvas, {
+    angleDeg: angle,
+    figures: next.figures,
+    heat: next.heat,
+    frozen: frozen(),
+    blur: !reduced && !frozen() && (skip > 2 || next.heat > 0.7),
   });
 }
 
@@ -133,17 +120,10 @@ function applyHeat(heat: number): void {
   lamp.classList.toggle("hot", heat > 0.72);
   lampCaption.textContent = lampWords(heat);
   peephole.classList.toggle("flicker", heat > 0.62 && !frozen() && !reduced);
-  drum.classList.toggle("blurry", heat > 0.7 && !frozen() && !reduced);
 }
 
-function turnDrum(slot: number, skip: number): void {
-  if (reduced) {
-    drum.style.setProperty("--angle", "12deg");
-    return;
-  }
-  const angle = bayIndex(slot) * 30;
-  drum.classList.toggle("blurry", skip > 2 || (sample?.heat ?? 0) > 0.7);
-  drum.style.setProperty("--angle", `${angle}deg`);
+function turnCrank(skip: number): void {
+  if (frozen()) return;
   crankAngle = (crankAngle + 17 + skip * 7) % 360;
   crank.style.setProperty("--crank", `${crankAngle}deg`);
 }
@@ -155,12 +135,13 @@ function revealPeek(next: Sample, slot: number): void {
 }
 
 function render(next: Sample, slot: number, skip = 1): void {
+  lastSkip = skip;
   slotStamp.textContent = `slot ${slot.toLocaleString("en-US")}`;
   gem.className = `gem${next.stale ? " stale" : ""}`;
   applyHeat(next.heat);
-  paintDrum(next);
+  paintCanvas(next, slot, skip);
   revealPeek(next, slot);
-  if (!frozen()) turnDrum(slot, skip);
+  if (!frozen()) turnCrank(skip);
 
   if (reduced || frozen()) {
     showStrip(shutterClosed ? "Shutter closed — the strip" : crankHeld ? "Crank held — the strip" : "Stepped strip");
@@ -170,6 +151,9 @@ function render(next: Sample, slot: number, skip = 1): void {
   }
 
   writeCaption({ ...next, slot }, frozen());
+  window.setTimeout(() => {
+    if (sample) paintCanvas(sample, displaySlot, lastSkip);
+  }, 90);
 }
 
 function hold(on: boolean, via: "crank" | "shutter"): void {
@@ -183,7 +167,11 @@ function hold(on: boolean, via: "crank" | "shutter"): void {
 
 crank.addEventListener("pointerdown", (event) => {
   event.preventDefault();
-  crank.setPointerCapture(event.pointerId);
+  try {
+    if (event.pointerId >= 0) crank.setPointerCapture(event.pointerId);
+  } catch {
+    /* synthetic events have no capture */
+  }
   hold(true, "crank");
 });
 crank.addEventListener("pointerup", () => hold(false, "crank"));
@@ -223,7 +211,6 @@ async function refresh(): Promise<void> {
 
 function localTick(): void {
   if (!sample || frozen() || reduced) return;
-  // Solana slots are ~400ms; we only increment while waiting on the next pull.
   const age = Date.now() - sample.fetchedAt;
   const guessed = sample.slot + Math.min(5, Math.floor(age / 400));
   if (guessed === displaySlot) return;
@@ -232,9 +219,11 @@ function localTick(): void {
   render(sample, displaySlot, skip);
 }
 
-ensureBays();
 if (reduced) showStrip("Stepped strip");
 
+void document.fonts.ready.then(() => {
+  if (sample) render(sample, displaySlot, 0);
+});
 void refresh();
 window.setInterval(() => void refresh(), 8000);
 window.setInterval(localTick, 400);

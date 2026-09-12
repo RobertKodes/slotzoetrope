@@ -10,12 +10,6 @@
       content="Live Solana mainnet as a Victorian zoetrope. The drum ticks with the slot clock; paper figures are recent transactions."
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Special+Elite&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body>
     <div class="parlor" id="parlor">
@@ -28,6 +22,7 @@
       <main class="stage">
         <aside class="lamp" id="lamp" aria-hidden="true">
           <div class="chimney"><div class="flame"></div></div>
+          <div class="lamp-stem"></div>
           <div class="lamp-base"></div>
           <p class="lamp-caption" id="lamp-caption">lamp mild</p>
         </aside>
@@ -50,11 +45,7 @@
             </div>
 
             <div class="drum-stage">
-              <div class="scene">
-                <div class="drum" id="drum" style="--angle: 0deg">
-                  <div class="floor" aria-hidden="true"></div>
-                </div>
-              </div>
+              <canvas id="drum" class="drum-canvas" width="640" height="460" role="img" aria-label="Zoetrope drum ticking with the Solana slot clock"></canvas>
             </div>
 
             <div class="plinth">
@@ -68,6 +59,7 @@
             <span class="crank-arm">
               <span class="crank-knob">hold</span>
             </span>
+            <span class="crank-note">hold to freeze</span>
           </button>
         </div>
       </main>
