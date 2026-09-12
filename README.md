@@ -54,4 +54,6 @@ Public RPCs (`api.mainnet-beta.solana.com`, `solana-rpc.publicnode.com`) with ba
 
 ## Deploy
 
-GitHub Actions builds on every PR and deploys **GitHub Pages** from `main` (`actions/deploy-pages`). After merge the toy should be at the LIVE URL above.
+GitHub Actions builds on every PR. On `main` it publishes `dist` to the `gh-pages` branch and also tries `actions/deploy-pages`.
+
+If the LIVE URL 404s, the repo still needs Pages turned on once (this token cannot flip that switch): **Settings → Pages →** either *GitHub Actions* or *Deploy from a branch* (`gh-pages` / `/`). Then the parlor is at the LIVE URL above.
